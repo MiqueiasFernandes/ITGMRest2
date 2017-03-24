@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>ITGM Rest</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"  crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
+        <style type="text/css">
+
+            .progress{
+                margin-top: 10px;
+            }
+
+            .linha{
+                font-family: 'Inconsolata', monospace;
+                margin-bottom: 5px;
+            }
+
+            .linha-input{
+                font-family: 'Inconsolata', monospace;
+                color:  #006be9;
+            }
+
+            .linha-hiden{
+                display: none;
+            }
+
+            #alert{
+                /*                float: right;
+                                width: 300px;
+                                background-color: azure;*/
+                font-size: 10px;
+                margin: 20px;
+            }
+
+            #terminal{
+                font-family: 'Inconsolata', monospace;
+                width: 100%;
+                background-color: #f8f8f8;
+                border-color: grey;
+                border-style: solid;
+                border-width: 2px;
+                font-size: 14px;
+            }
+
+            #prompt{
+                font-family: 'Inconsolata', monospace;
+                float: left;
+                margin-top: 1px;
+                color: #006be9;
+                font-size: 16px;
+            }
+
+
+            #type {
+                font-family: 'Inconsolata', monospace;
+                font-size: 16px;
+                background-color: #f8f8f8;
+                outline: none;
+                color: #006be9;
+                border: none;
+                border-color: transparent;
+                padding: 0;
+                margin: 0;
+                width: 90%;
+            }
+
+            .default{
+                color: black;
+            }
+
+            .error{
+                color: red;
+            }
+
+            #term{
+                display: none;
+            }
+
+
+
+            /* Move down content because we have a fixed navbar that is 50px tall */
+            body {
+                padding-top: 50px;
+            }
+
+            /*
+             * Typography
+             */
+
+            h1 {
+                margin-bottom: 20px;
+                padding-bottom: 9px;
+                border-bottom: 1px solid #eee;
+            }
+
+            /*
+             * Sidebar
+             */
+
+            .sidebar {
+                position: fixed;
+                top: 51px;
+                bottom: 0;
+                left: 0;
+                z-index: 1000;
+                padding: 20px;
+                overflow-x: hidden;
+                overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+                border-right: 1px solid #eee;
+            }
+
+            /* Sidebar navigation */
+            .sidebar {
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .sidebar .nav {
+                margin-bottom: 20px;
+            }
+
+            .sidebar .nav-item {
+                width: 100%;
+            }
+
+            .sidebar .nav-item + .nav-item {
+                margin-left: 0;
+            }
+
+            .sidebar .nav-link {
+                border-radius: 0;
+            }
+
+            /*
+             * Dashboard
+             */
+
+            /* Placeholders */
+            .placeholders {
+                padding-bottom: 3rem;
+            }
+
+            .placeholder img {
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+        </style>
+
+    </head>
+    <body>
+        <nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">
+            <button class="navbar-toggler navbar-toggler-right hidden-lg-up" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" href="#">ITGM Rest</a>
+
+            <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Carga do Sistema </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="LIVE.html">LIVE</a>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" href="BATCH.html">BATCH</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="FILES.html">FILES</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+
+        <div class="container-fluid" id="conteiner">
+            <div class="row">
+                <main class="col-sm-12  col-md-12  pt-3">
+                    <h1>Teste o terminal emulado</h1>
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label for="url">URL</label>
+                            <input type="text" class="form-control" id="url" value="http://localhost:8090/ITGMRest2/webresources/jriaccess/miqueias/p1/c1/diretorio">
+                        </div>
+                        <div class="form-group">
+                            <label for="inp">Parametros</label>
+                            <input type="text" class="form-control" id="inp" value="LIVE,,INFO,--vanilla">
+                        </div>
+
+                        <input type="number" id="memoria" min="1" max="1000" value="10">MB memoria <br>
+                        <input type="number" id="disco" min="1" max="1000" value="10">MB disco <br>
+                        <input type="number" id="cpu" value="10" min="0.1" step="0.001"  max="400">% cpu <br>
+                        <input type="checkbox" id="salvar" > salvar <br>
+
+                        <button type="button" class="btn btn-primary" onclick="post()">Obter Token!</button>
+                    </form>
+                </main>
+
+
+                <!-- Modal -->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="myModalLabel">Terminal Emulado R</h4>
+                            </div>
+                            <div class="modal-body">
+                                <table id="terminal">
+                                    <tbody>
+                                        <tr>
+                                            <td>Insira os comandos abaixo...</td>
+                                        </tr>
+                                        <tr>
+                                            <td id="linha-temporaria" class="linha"></td>
+                                        </tr>
+                                        <tr>
+                                            <td id="insert-text" class="linha">
+                                                <div id="prompt"></div>
+                                                <input type="text" id="type"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <div class="progress">
+                                    <div id="cpup" class="progress-bar progress-bar-striped bg-info" role="progressbar"  aria-valuemin="0">
+                                        CPU
+                                    </div>
+                                </div>
+                                <div class="progress">
+                                    <div id="ram" class="progress-bar progress-bar-striped bg-info" role="progressbar"  aria-valuemin="0" >
+                                        RAM
+                                    </div>
+                                </div>
+                                <div class="progress">
+                                    <div id="limdisco" class="progress-bar progress-bar-striped bg-info" role="progressbar"  aria-valuemin="0" >
+                                        DISCO
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <input type="checkbox" id="update" onchange="getStatus()"> status
+                                <button type="button" class="btn btn-primary" onclick="suspender()" id="suspend">Suspender</button>
+                                <button type="button" class="btn btn-primary" id="sessao">Abrir sessão</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <textarea class="form-control" rows="3" id="alert"></textarea>
+
+
+            </div>
+        </div>
+    </body>
+
+
+    <script>
+
+        var terminal = document.getElementById('terminal');
+        var tableRef = terminal.getElementsByTagName('tbody')[0];
+        var inserttext = document.getElementById('insert-text');
+        var alertar = document.getElementById("alert");
+        var type = document.getElementById("type");
+        var prompt = document.getElementById("prompt");
+        var linhaTemporaria = document.getElementById("linha-temporaria");
+        var comandos = [];
+        var socket, webstatus;
+        var lineCount = 0;
+        var handlers = [], closes = [];
+        var token;
+        var modalVisivel = false;
+
+
+        $('#myModal').on('hide.bs.modal', function (e) {
+            modalVisivel = false;
+        })
+        $('#myModal').on('show.bs.modal', function (e) {
+            modalVisivel = true;
+        })
+
+        function post() {
+            params = "&parametros=" + document.getElementById("inp").value.split(",").join("&parametros=");
+            memoria = "&memoria=" + (document.getElementById("memoria").value);
+            cpu = "&cpu=" + (document.getElementById("cpu").value);
+            disco = "&disco=" + (document.getElementById("disco").value);
+            salvar = "&salvar=" + (document.getElementById("salvar").checked ? "true" : "false");
+            $.ajax({
+                url: document.getElementById("url").value + "?" + memoria + cpu + salvar + disco + params,
+                type: 'put',
+                contentType: "text/plain",
+                data: null,
+                success: function (data) {
+                    if (!data || data === null || data.length < 2)
+                    {
+                        addAlert("danger", "TOKEN: ", data);
+                        return;
+                    }
+                    addAlert("success", "TOKEN: ", data);
+                    addAlert("success", "Terminal Emulado:", "clique aqui para abrir o terminal")
+                            .onclick = function () {
+                                if (!modalVisivel)
+                                    $('#myModal').modal('show')
+                            };
+                    token = data;
+                    var sess = document.getElementById("sessao");
+                    sess.innerText = "Abrir sessão";
+                    sess.onclick = initrLive();
+                    $("#sessao").removeClass("btn-danger")
+                            .addClass("btn-default");
+                    if (!modalVisivel)
+                        $('#myModal').modal('show');
+                    $('#cpup').attr('aria-valuemax', (document.getElementById("cpu").value));
+                    $('#ram').attr('aria-valuemax', (document.getElementById("memoria").value));
+                    $('#limdisco').attr('aria-valuemax', (document.getElementById("disco").value));
+                    document.getElementById("update").checked = false;
+                }
+            });
+
+        }
+
+
+        function addAlert(type, title, text) {
+            var div = document.createElement("DIV");
+            div.setAttribute("class", "alert alert-" + type + " alert-dismissible");
+            div.setAttribute("role", "alert");
+            div.style.height = "50px";
+            div.style.margin = "20px";
+
+            var bt = document.createElement("BUTTON");
+            bt.setAttribute("type", "button");
+            bt.setAttribute("class", "close");
+            bt.setAttribute("data-dismiss", "alert");
+            bt.setAttribute("aria-label", "Close");
+
+            var span = document.createElement("SPAN");
+            span.setAttribute("aria-hidden", "true");
+            span.innerHTML = "&times;";
+
+            var strong = document.createElement("STRONG");
+            strong.innerHTML = title;
+
+            var txt = document.createTextNode(text);
+            bt.appendChild(span);
+            div.appendChild(strong);
+            div.appendChild(txt);
+            div.appendChild(bt);
+            document.getElementById("conteiner")
+                    .appendChild(div);
+            return div;
+        }
+
+
+        $("#type").keydown(function (e) {
+            var code = e.keyCode || e.which;
+            if (code === 13 && websocket) {//enter
+                websocket.send(type.value);
+                log("enviado: " + type.value);
+                comandos[comandos.length] = type.value;
+            }
+
+            if (code === 38 && comandos.length > 0) {
+                var index = $.inArray(type.value, comandos);
+                if (index > -1) {
+                    type.value = comandos[index > 0 ? index - 1 : 0];
+                } else {
+                    type.value = comandos[comandos.length - 1];
+                }
+            }
+
+            if (code === 40 && comandos.length > 0) {
+                var index = $.inArray(type.value, comandos);
+                if (index > -1 && ++index < comandos.length) {
+                    type.value = comandos[index];
+                }
+            }
+        });
+
+
+
+        handlers["BUSY"] = function (msg) {
+            terminal.style.cursor = msg.data;
+        };
+
+        handlers["ECHO"] = function (msg) {
+            type.value = "";
+            insertLine(msg.data, "linha linha-input");
+            type.focus();
+        };
+
+        handlers["FLUSH"] = function (msg) {
+            linhaTemporaria.innerText = "";
+            type.value = "";
+        };
+
+        handlers["MESSAGE"] = function (msg) {
+            alert("meNSAGEm: " + msg.data);
+        };
+
+        handlers["ERROR"] = function (msg) {
+            alert("ERROR: " + msg);
+        };
+
+        handlers["STATUS"] = function (msg) {
+            var status = JSON.parse(msg.data);
+
+            if (status.isSuspenso) {
+                $("#suspend").removeClass("active");
+            } else {
+                $("#suspend").addClass("active");
+            }
+
+            var cpu = parseFloat(status.cpu);
+            var mem = parseInt(status.memoria);
+            var dsc = parseFloat(status.disco);
+
+
+            var cl = document.getElementById("cpu").value = parseFloat(status.cpuLimit);
+            var ml = document.getElementById("memoria").value = parseInt(status.memoriaLimit);
+            var dcl = document.getElementById("disco").value = parseFloat(status.discoLimit);
+
+            $('#cpup').attr('aria-valuemax', cl);
+            $('#ram').attr('aria-valuemax', ml);
+            $('#limdisco').attr('aria-valuemax', dcl);
+
+            cpup = (cpu / cl) * 100;
+            memp = (mem / ml) * 100;
+            dcp = (dsc / dcl) * 100;
+
+            $('#cpup').css('width', cpup + '%').attr('aria-valuenow', cpup);
+            $('#ram').css('width', memp + '%').attr('aria-valuenow', memp);
+            $('#limdisco').css('width', dcp + '%').attr('aria-valuenow', dcp);
+
+            document.getElementById('cpup').innerHTML = "CPU " + cpu + "% de " + cl + "%";
+            document.getElementById('ram').innerHTML = "MEMORIA " + mem + "MB de " + ml + "MB";
+            document.getElementById('limdisco').innerHTML = "DISCO " + dsc + "MB de " + dcl + "MB";
+
+            if (cpup > 80) {
+                $("#cpup").removeClass("bg-info")
+                        .addClass("bg-danger");
+            } else {
+                $("#cpup").removeClass("bg-danger")
+                        .addClass("bg-info");
+            }
+
+            if (memp > 80) {
+                $("#ram").removeClass("bg-info")
+                        .addClass("bg-danger");
+            } else {
+                $("#ram").removeClass("bg-danger")
+                        .addClass("bg-info");
+            }
+
+            if (dcp > 80) {
+                $("#limdisco").removeClass("bg-info")
+                        .addClass("bg-danger");
+            } else {
+                $("#limdisco").removeClass("bg-danger")
+                        .addClass("bg-info");
+            }
+
+            log("[STATUS] " + msg.data)
+        };
+
+        handlers["CONSOLE"] = function (msg) {
+            msg = msg.data;
+            tipo = msg.substring(1, msg.indexOf("]"))
+            msg = msg.substring(2 + tipo.length)
+
+            var txt = document.createElement("SPAN");
+            txt.appendChild(document.createTextNode(msg))
+            txt.className = ((tipo === "0") ? "default" : "error");
+            linhaTemporaria.appendChild(txt);
+
+            if (msg.indexOf("\n") >= 0) {
+                insertLine(linhaTemporaria.innerHTML, "linha");
+                while ((child = linhaTemporaria.firstChild))
+                    linhaTemporaria.removeChild(child);
+                log("\"" + msg + "\" tratado cm nova linha");
+            } else {
+                log(msg + " tratado cm simples");
+            }
+
+            type.focus();
+        };
+
+        handlers["PROMPT"] = function (msg) {
+            prompt.innerText = msg.data;
+            type.focus();
+        };
+        ////CONSOLE BUSY ECHO FLUSH MESSAGE ERROR STATUS PROMPT
+
+
+        closes["CONSOLE"] = function () {
+            closed("CONSOLE");
+        };
+        closes["BUSY"] = function () {
+            closed("BUSY");
+        };
+        closes["ECHO"] = function () {
+            closed("ECHO");
+        };
+        closes["FLUSH"] = function () {
+            closed("FLUSH");
+        };
+        closes["MESSAGE"] = function () {
+            closed("MESSAGE");
+        };
+        closes["ERROR"] = function () {
+            closed("ERROR");
+        };
+        closes["STATUS"] = function () {
+            closed("STATUS");
+        };
+        closes["PROMPT"] = function () {
+            closed("PROMPT");
+        };
+
+
+
+        function closed(name) {
+            if (modalVisivel)
+                $('#myModal').modal('hide');
+            addAlert("danger", "Websockets "
+                    + name + ": ",
+                    "a conexão foi encerrada.");
+        }
+
+
+
+
+        function initrLive() {
+            var url = window.location.href.replace("http", "ws").replace("LIVE.html", "") + "jriaccesslive/" + token + "/";
+            log('iniciando webservice rlive em ' + url + '...');
+
+            for (var handle in handlers) {
+
+                log("tentando abrir conexão em " + url + handle);
+
+                var webs = new WebSocket(url + handle);
+
+                if (handlers[handle] !== null)
+                    webs.onmessage = handlers[handle];
+
+                if (closes[handle] !== null)
+                    webs.onclose = closes[handle];
+
+                if (handle === "CONSOLE") {
+                    websocket = webs;
+                    websocket.onopen = function () {
+                        $("#sessao").removeClass("btn-default")
+                                .addClass("btn-danger");
+                        var sess = document.getElementById("sessao");
+                        sess.innerText = "Encerrar sessão";
+                        sess.onclick = function () {
+                            endRlive();
+                        };
+                    };
+                }
+                if (handle === "STATUS")
+                    webstatus = webs;
+            }
+        }
+
+        function endRlive() {
+            webstatus.send("stop");
+            if (modalVisivel)
+                $('#myModal').modal('hide');
+        }
+
+        function insertLine(txt, classe) {
+            var newCell = tableRef.insertRow(tableRef.rows.length - 2).insertCell(0);
+            newCell.className = classe;
+            newCell.innerHTML = txt;
+            if (lineCount++ > 20) {
+                tableRef.removeChild(tableRef.childNodes[2]);
+            }
+        }
+
+        function log(text) {
+            alertar.innerHTML = text + "\n" + alertar.innerHTML;
+        }
+
+        function getStatus() {
+            if (document.getElementById("update").checked) {
+                webstatus.send("1");
+                $("#cpup").addClass("progress-bar-animated");
+                $("#ram").addClass("progress-bar-animated");
+                $("#limdisco").addClass("progress-bar-animated");
+            } else {
+                webstatus.send("10");
+                $("#cpup").removeClass("progress-bar-animated");
+                $("#ram").removeClass("progress-bar-animated");
+                $("#limdisco").removeClass("progress-bar-animated");
+            }
+        }
+
+        function  suspender() {
+            if ($("#suspend").hasClass("active")) {
+                webstatus.send("resume");
+            } else {
+                webstatus.send("suspend");
+            }
+        }
+
+    </script>
+
+
+</html>

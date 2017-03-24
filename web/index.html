@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>ITGM Rest</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"  crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
+        <style type="text/css">
+            /*
+ * Base structure
+ */
+
+            /* Move down content because we have a fixed navbar that is 50px tall */
+            body {
+                padding-top: 50px;
+            }
+
+            /*
+             * Typography
+             */
+
+            h1 {
+                margin-bottom: 20px;
+                padding-bottom: 9px;
+                border-bottom: 1px solid #eee;
+            }
+
+            /*
+             * Sidebar
+             */
+
+            .sidebar {
+                position: fixed;
+                top: 51px;
+                bottom: 0;
+                left: 0;
+                z-index: 1000;
+                padding: 20px;
+                overflow-x: hidden;
+                overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+                border-right: 1px solid #eee;
+            }
+
+            /* Sidebar navigation */
+            .sidebar {
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .sidebar .nav {
+                margin-bottom: 20px;
+            }
+
+            .sidebar .nav-item {
+                width: 100%;
+            }
+
+            .sidebar .nav-item + .nav-item {
+                margin-left: 0;
+            }
+
+            .sidebar .nav-link {
+                border-radius: 0;
+            }
+
+            /*
+             * Dashboard
+             */
+
+            /* Placeholders */
+            .placeholders {
+                padding-bottom: 3rem;
+            }
+
+            .placeholder img {
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+        </style>
+
+    </head>
+    <body>
+        <nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">
+            <button class="navbar-toggler navbar-toggler-right hidden-lg-up" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" href="#">ITGM Rest</a>
+
+            <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Carga do Sistema </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="LIVE.html">LIVE</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="BATCH.html">BATCH</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="FILES.html">FILES</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="container-fluid">
+            <div class="row">
+                <main class="col-sm-12  col-md-12  pt-3">
+                    <h1>Carga do Sistema</h1>
+
+                    <section class="row text-center placeholders">
+                        <div class="col-6 col-sm-3 placeholder">
+                            <img src="data:image/gif;base64,R0lGODlhAQABAIABAAJ12AAAACwAAAAAAQABAAACAkQBADs=" width="200" height="200" class="img-fluid rounded-circle" alt="Generic placeholder thumbnail">
+                            <h4>CPU</h4>
+                            <div class="text-muted">Something else</div>
+                        </div>
+                        <div class="col-6 col-sm-3 placeholder">
+                            <img src="data:image/gif;base64,R0lGODlhAQABAIABAADcgwAAACwAAAAAAQABAAACAkQBADs=" width="200" height="200" class="img-fluid rounded-circle" alt="Generic placeholder thumbnail">
+                            <h4>RAM</h4>
+                            <span class="text-muted">Something else</span>
+                        </div>
+                        <div class="col-6 col-sm-3 placeholder">
+                            <img src="data:image/gif;base64,R0lGODlhAQABAIABAAJ12AAAACwAAAAAAQABAAACAkQBADs=" width="200" height="200" class="img-fluid rounded-circle" alt="Generic placeholder thumbnail">
+                            <h4>HD</h4>
+                            <span class="text-muted">Something else</span>
+                        </div>
+                        <div class="col-6 col-sm-3 placeholder">
+                            <img src="data:image/gif;base64,R0lGODlhAQABAIABAADcgwAAACwAAAAAAQABAAACAkQBADs=" width="200" height="200" class="img-fluid rounded-circle" alt="Generic placeholder thumbnail">
+                            <h4>Label</h4>
+                            <span class="text-muted">Something else</span>
+                        </div>
+                    </section>
+
+                    <h2>Processos no sistema <button onclick="update()" class="btn btn-primary">Atualizar</button></h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>PID2</th>
+                                    <th>Token</th>
+                                    <th>Diretorio</th>
+                                    <th>CPU</th>
+                                    <th>RAM</th>
+                                    <th>HD</th>
+                                    <th>STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="alerts" style="width: 100%;"></div>
+                </main>
+            </div>
+        </div>
+    </body>
+
+    <script>
+
+
+        function update() {
+
+            var tableRef = document.getElementsByTagName('tbody')[0];
+
+            $.ajax({
+                url: "http://localhost:8090/ITGMRest2/webresources/jriaccess/process/",
+                type: 'get',
+                contentType: "text/plain",
+                success: function (data) {
+
+                    console.log("recebido: " + JSON.stringify(data));
+
+                    if (!data || data === null) {
+                        addAlert("warning", "GET: ", "nada foi recebido: " + data, false);
+                        return;
+                    }
+
+                    if (data.error) {
+                        addAlert("danger", "ERROR: ", data.error);
+                        return;
+                    }
+                    while (tableRef.firstChild)
+                        tableRef.removeChild(tableRef.firstChild);
+                    var processos = data.process;
+                    for (var processo in processos) {
+                        insertCells(tableRef.insertRow(tableRef.rows.length), processos[processo])
+                    }
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    addAlert("danger", "GET: ", " falhou, " + jqXHR + " "
+                            + textStatus + " " + errorThrown, false);
+                }
+            });
+            return;
+        }
+
+
+
+        function insertCells(row, json) {
+            var i = 0;
+            row.insertCell(i++).innerText = json.pid; ///PID
+            row.insertCell(i++).innerText = json.pidJava; ///PID2
+            row.insertCell(i++).innerText = json.token;//Token
+            row.insertCell(i++).innerText = json.diretorio;//Diretorio
+            row.insertCell(i++).innerText = json.cpu + " de " + json.cpuLimit;//CPU
+            row.insertCell(i++).innerText = json.memoria + " de " + json.memoriaLimit;//RAM
+            row.insertCell(i++).innerText = json.disco + " de " + json.discoLimit;//HD
+            row.insertCell(i++).innerText = (json.isAlive ?
+                    (json.isSuspenso ? "suspenso" : (json.jriState ? json.jriState : "alive")) : "morto");///STATUS
+        }
+
+
+
+        function addAlert(type, title, text, html) {
+            var div = document.createElement("DIV");
+            div.setAttribute("class", "alert alert-" + type + " alert-dismissible");
+            div.setAttribute("role", "alert");
+            /// div.style.height = "50px";
+            div.style.margin = "20px";
+            div.style.wordWrap = "break-word";
+
+            var bt = document.createElement("BUTTON");
+            bt.setAttribute("type", "button");
+            bt.setAttribute("class", "close");
+            bt.setAttribute("data-dismiss", "alert");
+            bt.setAttribute("aria-label", "Close");
+
+            var span = document.createElement("SPAN");
+            span.setAttribute("aria-hidden", "true");
+            span.innerHTML = "&times;";
+
+            var strong = document.createElement("STRONG");
+            strong.innerHTML = title;
+
+            var txt = document.createTextNode(text);
+            bt.appendChild(span);
+            div.appendChild(strong);
+            if (html)
+                div.innerHTML += text;
+            else
+                div.appendChild(txt);
+            div.appendChild(bt);
+            var alerts = document.getElementById("alerts");
+            alerts.insertBefore(div, alerts.firstChild);
+            return div;
+        }
+
+
+
+    </script>
+
+
+
+</html>

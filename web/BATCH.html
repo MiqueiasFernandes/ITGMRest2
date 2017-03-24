@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>ITGM Rest</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"  crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
+        <style type="text/css">
+
+            #script{
+                margin: 20px;
+            }
+
+
+
+
+            /* Move down content because we have a fixed navbar that is 50px tall */
+            body {
+                padding-top: 50px;
+            }
+
+            /*
+             * Typography
+             */
+
+            h1 {
+                margin-bottom: 20px;
+                padding-bottom: 9px;
+                border-bottom: 1px solid #eee;
+            }
+
+            /*
+             * Sidebar
+             */
+
+            .sidebar {
+                position: fixed;
+                top: 51px;
+                bottom: 0;
+                left: 0;
+                z-index: 1000;
+                padding: 20px;
+                overflow-x: hidden;
+                overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+                border-right: 1px solid #eee;
+            }
+
+            /* Sidebar navigation */
+            .sidebar {
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .sidebar .nav {
+                margin-bottom: 20px;
+            }
+
+            .sidebar .nav-item {
+                width: 100%;
+            }
+
+            .sidebar .nav-item + .nav-item {
+                margin-left: 0;
+            }
+
+            .sidebar .nav-link {
+                border-radius: 0;
+            }
+
+            /*
+             * Dashboard
+             */
+
+            /* Placeholders */
+            .placeholders {
+                padding-bottom: 3rem;
+            }
+
+            .placeholder img {
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+        </style>
+
+    </head>
+    <body>
+        <nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">
+            <button class="navbar-toggler navbar-toggler-right hidden-lg-up" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" href="#">ITGM Rest</a>
+
+            <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Carga do Sistema </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="LIVE.html">LIVE</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="BATCH.html">BATCH</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="FILES.html">FILES</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+
+        <div class="container-fluid" id="conteiner">
+            <div class="row">
+                <main class="col-sm-12  col-md-12  pt-3">
+                    <h1>Execute um script R</h1>
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label for="url">URL</label>
+                            <input type="text" class="form-control" id="url" value="http://localhost:8090/ITGMRest2/webresources/jriaccess/miqueias/p1/c1/diretorio">
+                        </div>
+                        <div class="form-group">
+                            <label for="inp">Parametros</label>
+                            <input type="text" class="form-control" id="inp" value="BATCH,log.txt,DEBUG"/>
+                        </div>
+
+                        <input  class="form-group" type="number" id="memoria" min="1" max="1000" value="10">MB memoria <br>
+                        <input  class="form-group" type="number" id="disco" min="1" max="1000" value="10">MB disco <br>
+                        <input  class="form-group" type="number" id="cpu" value="10" min="0.1" step="0.001"  max="400">% cpu <br>
+                        <!--<input type="checkbox" id="salvar" > salvar <br>-->
+
+                        <button  class="form-group btn btn-primary" type="button" onclick="putProcess()">Executar!</button>
+                        <button  class="form-group btn btn-primary" type="button" onclick="getStatus()">STATUS</button>
+                        <button  class="form-group btn btn-primary" type="button" onclick="send('suspend')">SUSPEND</button>
+                        <button  class="form-group btn btn-primary" type="button" onclick="send('resume')">RESUME</button>
+                        <button  class="form-group btn btn-primary" type="button" onclick="send('stop')">STOP</button>
+                        <button  class="form-group btn btn-primary" type="button" onclick="update()">UPDATE</button>
+                        <button  class="form-group btn btn-primary" type="button" onclick="endProcesso()">EXIT</button>
+                    </form>
+                </main>
+
+                <textarea class="form-control" rows="3" id="script" placeholder="Digite o script R aqui..."></textarea>
+                <div id="alerts" style="width: 100%;"></div>
+            </div>
+        </div>
+    </body>
+
+
+    <script>
+
+
+        var token;
+
+        function update() {
+            memoria = "&memoria=" + (document.getElementById("memoria").value);
+            cpu = "&cpu=" + (document.getElementById("cpu").value);
+            disco = "&disco=" + (document.getElementById("disco").value);
+            salvar = "&salvar=true";
+            $.ajax({
+                url: "http://localhost:8090/ITGMRest2/webresources/jriaccess/update" + "?" + memoria + cpu + disco + salvar,
+                type: 'put',
+                contentType: "text/plain",
+                data: token,
+                success: function (data) {
+                    if (!data || data === "false") {
+                        addAlert("danger", "UPDATE: ", "houve um erro ao tentar update. " + data);
+                        return;
+                    }
+                    addAlert("success", "UPDATE: ", "efetuada com sucesso. " + data);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    addAlert("danger", "UPDATE: ", " falhou, " + jqXHR + " " + textStatus + " " + errorThrown);
+                }
+            });
+
+        }
+
+
+        function putProcess() {
+            params = "&parametros=" + document.getElementById("inp").value.split(",").join("&parametros=");
+            memoria = "&memoria=" + (document.getElementById("memoria").value);
+            cpu = "&cpu=" + (document.getElementById("cpu").value);
+            disco = "&disco=" + (document.getElementById("disco").value);
+            salvar = "&salvar=true";
+            $.ajax({
+                url: document.getElementById("url").value + "?" + memoria + cpu + disco + salvar + params,
+                type: 'put',
+                contentType: "text/plain",
+                data: encodeURIComponent(document.getElementById("script").value),
+                success: function (data) {
+
+                    if (!data || data === null || data.length < 2)
+                    {
+                        addAlert("danger", "TOKEN: ", data);
+                        return;
+                    }
+                    token = data;
+                    addAlert("success", "TOKEN: ", data);
+                    getStatus();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    addAlert("danger", "PUT PROCESS: ", " falhou, " + jqXHR + " " + textStatus + " " + errorThrown);
+                }
+            });
+
+        }
+
+
+        function getStatus() {
+            $.ajax({
+                url: "http://localhost:8090/ITGMRest2/webresources/jriaccess/status/" + token,
+                type: 'get',
+                contentType: "text/plain",
+                success: function (data) {
+                    if (!data || data === null || data.length < 2)
+                    {
+                        addAlert("warning", "STATUS: ", data + " token: " + token);
+                        return;
+                    }
+
+                    if (data.error && data.error !== "ok" && data.error !== "") {
+                        addAlert("warning", "STATUS: ", data.error + " token: " + token);
+                        return;
+                    }
+                    addAlert("info", "STATUS: ", JSON.stringify(data));
+                    return data;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    addAlert("danger", "STATUS: ", " falhou, " + jqXHR + " " + textStatus + " " + errorThrown);
+                }
+            });
+        }
+
+
+
+
+
+        function send(opcao) {
+            $.ajax({
+                url: "http://localhost:8090/ITGMRest2/webresources/jriaccess/" + opcao,
+                type: "put",
+                contentType: "text/plain",
+                data: token,
+                success: function (data) {
+                    addAlert("success", opcao.toUpperCase() + ": ", "efetuado com sucesso.");
+                    getStatus();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    addAlert("danger", opcao.toUpperCase() + ": ", " falhou, " + jqXHR + " " + textStatus + " " + errorThrown);
+                }
+            });
+        }
+
+        function endProcesso() {
+            $.ajax({
+                url: "http://localhost:8090/ITGMRest2/webresources/jriaccess/process/" + token,
+                type: "delete",
+                contentType: "text/plain",
+                success: function (data) {
+                    if (!data || data === "false")
+                    {
+                        addAlert("danger", "EXIT: ", "impossível excluir token: " + token + " " + data);
+                        return;
+                    }
+                    addAlert("success", "EXIT: ", " o processo foi encerrado: " + data);
+                }
+                ,
+                error: function (jqXHR, textStatus, errorThrown) {
+                    addAlert("danger", "EXIT: ", " falhou, " + jqXHR + " " + textStatus + " " + errorThrown);
+                }
+            });
+        }
+
+
+        var ultimo;
+        function addAlert(type, title, text) {
+            var div = document.createElement("DIV");
+            div.setAttribute("class", "alert alert-" + type + " alert-dismissible");
+            div.setAttribute("role", "alert");
+            /// div.style.height = "50px";
+            div.style.margin = "20px";
+            div.style.wordWrap = "break-word";
+
+            var bt = document.createElement("BUTTON");
+            bt.setAttribute("type", "button");
+            bt.setAttribute("class", "close");
+            bt.setAttribute("data-dismiss", "alert");
+            bt.setAttribute("aria-label", "Close");
+
+            var span = document.createElement("SPAN");
+            span.setAttribute("aria-hidden", "true");
+            span.innerHTML = "&times;";
+
+            var strong = document.createElement("STRONG");
+            strong.innerHTML = title;
+
+            var txt = document.createTextNode(text);
+            bt.appendChild(span);
+            div.appendChild(strong);
+            div.appendChild(txt);
+            div.appendChild(bt);
+            var alerts = document.getElementById("alerts");
+//            tmp = alerts.firstChild;
+
+            alerts.insertBefore(div, alerts.firstChild);
+            //ultimo = div;
+//            else
+//                ultimo.be
+//            alerts.appendChild(alerts.removeChild(alerts.firstChild));
+            return div;
+        }
+
+
+
+
+
+
+
+
+        function log(text) {
+            alertar.innerHTML = text + "\n" + alertar.innerHTML;
+        }
+
+
+    </script>
+
+
+</html>
