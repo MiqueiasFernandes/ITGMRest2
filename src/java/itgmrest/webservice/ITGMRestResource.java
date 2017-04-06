@@ -11,6 +11,7 @@ import itgmrest.processos.AbstractProcesso;
 import itgmrest.processos.BatchProcesso;
 import itgmrest.processos.Contexto;
 import itgmrest.processos.LiveProcesso;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
@@ -445,7 +446,12 @@ public class ITGMRestResource {
                 new File(file.substring(0, file.lastIndexOf("/") + 1)).mkdirs();
             }
 
-            getMainSingleton().debug("arquivo: " + file + " content: " + fileInputStream.toString() + "...", getClass(), 288);
+           fileInputStream = new BufferedInputStream(fileInputStream);
+            fileInputStream.mark(0);
+            byte[] bs = new byte[100];
+            fileInputStream.read(bs);
+            getMainSingleton().debug("arquivo: " + file + " tam: " + fileInputStream.available() + " content: " + new String(bs) + "...", getClass(), 288);
+            fileInputStream.reset();
             File f = new File(file);
             if (file.endsWith("/")) {
                 return false;
@@ -453,6 +459,8 @@ public class ITGMRestResource {
                 f.createNewFile();
                 if (fileInputStream.available() > 0) {
                     Files.copy(fileInputStream, f.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                } else {
+                    return false;
                 }
                 return true;
             }
