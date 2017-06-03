@@ -386,8 +386,9 @@ public class ScriptBash {
             + "		sleep " + timeToReloadFile + ";\n"
             + "	done\n"
             + "else\n"
-            + "	echo \"Tentando instalar o programa libcgroup-tools em FEDORA!, após terminar tente novamente.\"\n"
+            + "	echo \"Tentando instalar o programa cpulimit E libcgroup-tools em FEDORA!, após terminar tente novamente.\"\n"
             + "	read -t 5\n"
+            + "	sudo dnf install cpulimit"
             + "	sudo dnf install libcgroup-tools\n"
             + "fi\n"
             + "exit";

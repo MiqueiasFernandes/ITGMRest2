@@ -8,15 +8,11 @@ package itgmrest.log;
 import itgmrest.MainSingleton;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class TXTLog implements ILog {
 
     private final FileWriter fileWriter;
     private final LogType nivelDeLog;
-    public static final Locale LOCALE = new Locale("pt", "BR");
 
     public TXTLog(String fileName, LogType type) throws IOException {
         this.nivelDeLog = type != null ? type : LogType.LOG_DEBUG;
@@ -55,7 +51,7 @@ public class TXTLog implements ILog {
                     break;
                 }
             }
-            log = LogType.getLogType(tipo) + " [" + getDateTime() + "] "
+            log = LogType.getLogType(tipo) + " [" + MainSingleton.getDateTime() + "] "
                     + texto + System.lineSeparator();
             fileWriter.append(log);
             fileWriter.flush();
@@ -64,13 +60,5 @@ public class TXTLog implements ILog {
         }
         return log;
     }
-
-    public static Locale getLocale() {
-        return LOCALE;
-    }
-
-    public static String getDateTime() {
-        return new SimpleDateFormat(MainSingleton.LOG_TIME_FORMAT, LOCALE).format(new Date());
-    }
-
+ 
 }

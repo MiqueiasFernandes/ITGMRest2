@@ -125,13 +125,13 @@ public class BatchProcesso extends AbstractProcesso {
         try {
             debug("enviando EXIT a processo", this, 146);
             writeToStreamProcess("exit");
-            if (isAlive()) {
-                debug("destruindo processo", this, 148);
-                getProcesso().destroy();
+//            if (isAlive()) {
                 debug("matando processo PIDS " + getPidJAVA() + " " + getPidR(), this, 150);
                 ScriptBash.kill(getPidR());
                 ScriptBash.kill(getPidJAVA());
-            }
+                debug("destruindo processo", this, 148);
+                getProcesso().destroy();
+//            }
         } catch (Exception ex) {
             error("pode ter ocorrido uma falha ao tentar encerrar processo: " + ex, this, 100);
         } finally {

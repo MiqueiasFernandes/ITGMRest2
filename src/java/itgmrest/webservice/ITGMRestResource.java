@@ -11,6 +11,7 @@ import itgmrest.processos.AbstractProcesso;
 import itgmrest.processos.BatchProcesso;
 import itgmrest.processos.Contexto;
 import itgmrest.processos.LiveProcesso;
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -19,6 +20,8 @@ import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
+import java.util.Scanner;
+import javax.imageio.ImageIO;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
@@ -77,6 +80,70 @@ public class ITGMRestResource {
     }
 
     @GET
+    @Path("compartilhamento/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getCompartilhamento() {
+
+        getMainSingleton().info("@GET/COMPARTILHAMENTO : enviar compartilhamento");
+        String origem = context.getQueryParameters().getFirst("origem");
+        String destino = context.getQueryParameters().getFirst("destino");
+
+        try {
+            String token = MainSingleton.getInstance().nextTokenFile().toUpperCase();
+            File fo = new File(
+                    MainSingleton.DIRETORIO + File.separator
+                    + origem + File.separator);
+            File dt = new File(MainSingleton.DIRETORIO + File.separator
+                    + destino + File.separator
+                    + "share" + File.separator
+                    + token + File.separator);
+            if (dt.mkdirs()) {
+                System.out.println("COMPARTILHAMENTO FEITO: " + token + " origem: " + fo + " destino: " + dt);
+                MainSingleton.copyDirectory(fo.toPath(), dt.toPath());
+            } else {
+                return "{\"error\":\"impossivel criar diretorio.\"}";
+            }
+            return token;
+        } catch (Exception ex) {
+            return "{\"error\":\"" + ex
+                    .toString()
+                    .replaceAll("\\s", " ")
+                    .replaceAll("\"", "'") + "\"}";
+        }
+    }
+
+    @GET
+    @Path("compartilhado/{usuario}/{token}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String setCompartilhamento(
+            @PathParam("usuario") String usuario,
+            @PathParam("token") String token) {
+
+        getMainSingleton().info("@GET/COMPARTILHADO : recebendo compartilhamento");
+
+        try {
+            String path = MainSingleton.DIRETORIO + File.separator
+                    + usuario + File.separator
+                    + "share" + File.separator
+                    + token + File.separator;
+            File fo = new File(path);
+            File dt = new File(MainSingleton.DIRETORIO + File.separator + new Scanner(new File(path + token)).nextLine());
+            System.out.println("COMPARTILHAMENTO RECEBIDO: de " + fo + " para " + dt);
+            ///ScriptBash.updatePID("0", "0", "0", "sudo rm " + dt.getAbsolutePath() + " -r -f");
+            Files.delete(new File(dt.getAbsolutePath() + "/.info").toPath());
+            dt.mkdirs();
+            MainSingleton.copyDirectory(fo.toPath(), dt.toPath());
+            System.out.println("Compartilhamento efetuado com sucesso!");
+            return token;
+        } catch (Exception ex) {
+            return "{\"error\":\"" + ex
+                    .toString()
+                    .replaceAll("\\s", " ")
+                    .replaceAll("\"", "'") + "\"}";
+        }
+    }
+
+    @GET
     @Path("status/{token}")
     @Produces(MediaType.APPLICATION_JSON)
     public String getStatus(@PathParam("token") String token) {
@@ -122,6 +189,49 @@ public class ITGMRestResource {
     }
 
     @GET
+    @Path("content/{usuario}/{projeto}/{cenario}/{diretorio}/{file}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getContentOfFile(@PathParam("file") String file) {
+        getMainSingleton().info("@GET/CONTENT : a obter conteudo do arquivo " + file);
+        try {
+            MultivaluedMap<String, String> pathParameters = context.getPathParameters();
+            String local = MainSingleton.DIRETORIO
+                    + pathParameters.getFirst("usuario") + File.separator
+                    + (!"*".equals(pathParameters.getFirst("projeto"))
+                    ? pathParameters.getFirst("projeto") + File.separator : "")
+                    + (!"*".equals(pathParameters.getFirst("cenario"))
+                    ? pathParameters.getFirst("cenario") + File.separator : "")
+                    + (!"*".equals(pathParameters.getFirst("diretorio"))
+                    ? pathParameters.getFirst("diretorio") + File.separator : "");
+            if (context.getQueryParameters().getFirst("subdiretorio") != null
+                    && !context.getQueryParameters().getFirst("subdiretorio").isEmpty()) {
+                local += context.getQueryParameters().getFirst("subdiretorio");
+            }
+
+            boolean cript = "true".equals(context.getQueryParameters().getFirst("cript"));
+
+            local += file;
+            Scanner scanner = new Scanner(new File(local), "UTF-8");
+            StringBuilder sb = new StringBuilder();
+            getMainSingleton().debug("@GET/CONTENT : arquivo: " + local + " hasLine: " + scanner.hasNextLine(), this.getClass(), 212);
+            while (scanner.hasNextLine()) {
+                String linha = scanner.nextLine();
+                if (cript) {
+                    String convert = java.util.Base64.getEncoder().encodeToString(linha.getBytes()) + ".";
+                    getMainSingleton().debug("@GET/CONTENT : linha: " + linha + " convertida em " + convert, this.getClass(), 220);
+                    sb.append(convert);
+                } else {
+                    sb.append(linha + "\n");
+                }
+            }
+            System.out.println("O arquivo foi lido, retornando: " + sb.substring(0, Math.min(100, sb.length())));
+            return sb.toString();
+        } catch (Exception ex) {
+            return "error:" + ex;
+        }
+    }
+
+    @GET
     @Path("file/{usuario}/{projeto}/{cenario}/{diretorio}/{file}")
     @Produces(MediaType.TEXT_PLAIN)
     public String publicFile(@PathParam("file") String file) {
@@ -142,11 +252,27 @@ public class ITGMRestResource {
             }
 
             local += file;
+            File f = new File(local);
             String token = getMainSingleton().nextTokenFile();
             String nome;
             File publico = new File(MainSingleton.WWW + (nome = (token + "." + local.replaceAll("^.*\\.", ""))));
-            Files.copy(new File(local).toPath(), publico.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            return nome;
+            Files.copy(f.toPath(), publico.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+            boolean meta = "true".equals(context.getQueryParameters().getFirst("meta"));
+            boolean image = "true".equals(context.getQueryParameters().getFirst("image"));
+
+            String metadata = "";
+            if (meta) {
+                metadata += "\",\"size\":" + f.length();
+                if (image) {
+                    BufferedImage bimg = ImageIO.read(f);
+                    metadata += ",\"width\":" + bimg.getWidth();
+                    metadata += ",\"height\":" + bimg.getHeight();
+                }
+                metadata += ",\"data\":\"" + MainSingleton.getDateTime(f.lastModified());
+            }
+
+            return nome + metadata;
         } catch (Exception ex) {
             return "error:" + ex;
         }
@@ -172,12 +298,12 @@ public class ITGMRestResource {
      * @param content representation for the resource
      * @return token of process
      */
-    @PUT
+    @POST
     @Path("{usuario}/{projeto}/{cenario}/{diretorio}")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
-    public String putProcess(String content) {
-        getMainSingleton().info("@PUT/PROCESS");
+    public String postProcess(String content) {
+        getMainSingleton().info("@POST/PROCESS");
         Contexto contexto;
         try {
             contexto = new Contexto(context.getPathParameters(), context.getQueryParameters(), content);
@@ -199,11 +325,11 @@ public class ITGMRestResource {
         return processo.getContexto().getToken();
     }
 
-    @PUT
+    @POST
     @Path("update")
     @Produces(MediaType.TEXT_PLAIN)
     public boolean putUpdate(String token) {
-        getMainSingleton().info("@PUT/UPDATE " + token);
+        getMainSingleton().info("@POST/UPDATE " + token);
         Contexto contexto;
         try {
             contexto = new Contexto(token, context.getQueryParameters());
@@ -446,7 +572,7 @@ public class ITGMRestResource {
                 new File(file.substring(0, file.lastIndexOf("/") + 1)).mkdirs();
             }
 
-           fileInputStream = new BufferedInputStream(fileInputStream);
+            fileInputStream = new BufferedInputStream(fileInputStream);
             fileInputStream.mark(0);
             byte[] bs = new byte[100];
             fileInputStream.read(bs);

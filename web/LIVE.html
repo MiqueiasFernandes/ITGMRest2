@@ -190,7 +190,7 @@ and open the template in the editor.
                     <form class="form-horizontal">
                         <div class="form-group">
                             <label for="url">URL</label>
-                            <input type="text" class="form-control" id="url" value="http://localhost:8090/ITGMRest2/webresources/jriaccess/miqueias/p1/c1/diretorio">
+                            <input type="text" class="form-control" id="url" value="http://itgm.mikeias.net:8080/ITGMRest2/webresources/jriaccess/miqueias/p1/c1/diretorio">
                         </div>
                         <div class="form-group">
                             <label for="inp">Parametros</label>
@@ -299,7 +299,7 @@ and open the template in the editor.
             salvar = "&salvar=" + (document.getElementById("salvar").checked ? "true" : "false");
             $.ajax({
                 url: document.getElementById("url").value + "?" + memoria + cpu + salvar + disco + params,
-                type: 'put',
+                type: 'post',
                 contentType: "text/plain",
                 data: null,
                 success: function (data) {
@@ -410,7 +410,7 @@ and open the template in the editor.
         };
 
         handlers["ERROR"] = function (msg) {
-            alert("ERROR: " + msg);
+            alert("ERROR: " + msg.data);
         };
 
         handlers["STATUS"] = function (msg) {

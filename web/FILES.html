@@ -125,7 +125,7 @@ and open the template in the editor.
                     <form class="form-horizontal">
                         <div class="form-group">
                             <label for="url">URL</label>
-                            <input type="text" class="form-control" id="url" value="http://localhost:8090/ITGMRest2/webresources/jriaccess/">
+                            <input type="text" class="form-control" id="url" value="http://itgm.mikeias.net:8080/ITGMRest2/webresources/jriaccess/">
                         </div>
                         <div class="form-group">
                             <label for="inp">Token</label>
@@ -160,6 +160,7 @@ and open the template in the editor.
 
                         <button  class="form-group btn btn-primary" type="button" onclick="send()">SEND FILE</button>
                         <button  class="form-group btn btn-primary" type="button" onclick="listFiles()">LIST</button>
+                        <button  class="form-group btn btn-primary" type="button" onclick="readFiles()">READ</button>
                         <button  class="form-group btn btn-primary" type="button" onclick="deleteFile()">DELETE</button>
                         <button  class="form-group btn btn-primary" type="button" onclick="public()">PUBLIC</button>
                     </form>
@@ -199,11 +200,35 @@ and open the template in the editor.
             });
             return;
         }
+        
+       function readFiles(){
+            var urli = document.getElementById("url").value
+                    + "content/" + document.getElementById("file").value
+                    + "?&subdiretorio=" + document.getElementById("dir").value;
+            ;
+            $.ajax({
+                url: urli,
+                type: 'get',
+                contentType: "text/plain",
+                success: function (data) {
+                    if (!data || data === null) {
+                        addAlert("warning", "READ: ", "impossivel ler, url: " + urli, false);
+                        return;
+                    }
+
+                    addAlert("success", "CONTEUDO: ",  data, true);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    addAlert("danger", "READ: ", " falhou, " + jqXHR + " "
+                            + textStatus + " " + errorThrown + " url: " + urli, false);
+                }
+            });
+            return; 
+        }
 
 
 
         function send() {
-
             var subdiretorio = "&subdiretorio=" + document.getElementById("dir").value;
             var urli = document.getElementById("url").value + document.getElementById("file").value + "?" + subdiretorio;
             if (document.getElementById("binario").checked) {
