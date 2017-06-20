@@ -42,14 +42,15 @@ import java.util.Locale;
  */
 public class MainSingleton {
 
-    public static final String DIRETORIO = "/home/mfernandes/ITGMRest/";
+    public static String DIRETORIO = "/home/glassfish/ITGMRest/";
     public static final String LOG_NAME = "itgmrest.log.";
     public static final String BASH_SCRIPT = "cgConfig.sh";
     public static final String LOG_NIVEL = "DEBUG";
     public static final String LOG_TIME_FORMAT = "dd' de 'MMMMM' de 'yyyy' > 'HH'-'mm'-'ss";
     public static final String ARGS_JRI = "java,"
             + "-jar,"
-            + "/home/mfernandes/NetBeansProjects/JRIAccess3/store/jriaccess.jar";
+            + DIRETORIO
+            + "jriaccess.jar";
     public static final int TIMEOUT_PID = 30;
     public static final int TIMEOUT_STATUS = 10; ////deve ser menor q pid
     public static final int LIMITE_CONSECUTIVO_DE_FALHAS = 20;
@@ -60,7 +61,21 @@ public class MainSingleton {
     public static final Locale LOCALE = new Locale("pt", "BR");
     public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(MainSingleton.LOG_TIME_FORMAT, LOCALE);
 
+    private static boolean MAIN_SINGLETON_INICIALIZADO = false;
+
+    public static boolean change_dir(String diretorio) {
+        if (!MAIN_SINGLETON_INICIALIZADO) {
+            System.out.println("[MAINSINGLETON 70] Alterando diretorio de " + DIRETORIO + " para " + diretorio);
+            DIRETORIO = diretorio;
+            return true;
+        } else {
+            System.err.println("[MAINSINGLETON 70] ERRO AO TENTAR ALTERAR DIRETORIO! MAIN_SINGLETON INICIALIZADA! ->" + diretorio);
+        }
+        return false;
+    }
+
     private MainSingleton() {
+        MAIN_SINGLETON_INICIALIZADO = true;
         System.out.println("inicializando MainSingleton...");
         try {
             LOG = new TXTLog(DIRETORIO + LOG_NAME + getDateTime(), LogType.getLogType(LOG_NIVEL));
@@ -283,7 +298,7 @@ public class MainSingleton {
     public static String getDateTime() {
         return DATE_FORMAT.format(new Date());
     }
-    
+
     public static String getDateTime(long date) {
         return DATE_FORMAT.format(date);
     }

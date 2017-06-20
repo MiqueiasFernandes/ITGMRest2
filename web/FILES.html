@@ -286,35 +286,7 @@ and open the template in the editor.
 
 
         function listFiles() {
-//            var token = document.getElementById("token").value;
             var urli = document.getElementById("url").value + "list/";
-//            if (token) {
-//                $.ajax({
-//                    url: urli + token,
-//                    type: 'get',
-//                    contentType: "text/plain",
-//                    success: function (data) {
-//                        if (!data || data === null) {
-//                            addAlert("warning", "LIST: ", data + " token: " + token);
-//                            return;
-//                        }
-//
-//                        if (data.indexOf("error:") === 0) {
-//                            addAlert("warning", "LIST: ", data + " token: " + token);
-//                            return;
-//                        }
-//
-//                        addAlert("success", "LIST: ", data);
-//                        return data;
-//                    },
-//                    error: function (jqXHR, textStatus, errorThrown) {
-//                        addAlert("danger", "LIST: ", " falhou, " + jqXHR + " "
-//                                + textStatus + " " + errorThrown + " token: " + token);
-//                    }
-//                });
-//                return;
-//            }
-
 
             $.ajax({
                 url: urli + document.getElementById("file").value,

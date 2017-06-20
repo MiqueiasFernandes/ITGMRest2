@@ -89,6 +89,7 @@ and open the template in the editor.
     </head>
     <body>
         <nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">
+
             <button class="navbar-toggler navbar-toggler-right hidden-lg-up" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -109,7 +110,18 @@ and open the template in the editor.
                         <a class="nav-link" href="FILES.html">FILES</a>
                     </li>
                 </ul>
+
+
+
+                <div class="navbar-form navbar-left form-inline" role="search">
+                    <div class="form-group">
+                        <input type="text" id="diretorio" class="form-control" placeholder="/home/glassfish/ITGMRest/">
+                    </div>
+                    <button class="btn btn-default" onclick="changedir()">diretorio</button>
+                </div>
+
             </div>
+
         </nav>
 
         <div class="container-fluid">
@@ -167,13 +179,27 @@ and open the template in the editor.
 
     <script>
 
+        function changedir() {
+            dir = $('#diretorio').val();
+            $.ajax({
+                url: "http://" + window.location.host + "/ITGMRest2/webresources/jriaccess/diretorio",
+                type: 'post',
+                contentType: "text/plain",
+                data: dir,
+                success: function (data) {
+                    alert(data);
+                }
+            });
+        }
+
+
 
         function update() {
 
             var tableRef = document.getElementsByTagName('tbody')[0];
 
             $.ajax({
-                url: "http://localhost:8090/ITGMRest2/webresources/jriaccess/process/",
+                url: "http://" + window.location.host + "/ITGMRest2/webresources/jriaccess/process/",
                 type: 'get',
                 contentType: "text/plain",
                 success: function (data) {

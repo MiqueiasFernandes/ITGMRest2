@@ -160,6 +160,9 @@ public class ScriptBash {
             + "	sudo echo \"Por favor, execute este programa como administrador\"\n"
             + "fi\n"
             + "\n"
+            + "rm \"" + MainSingleton.DIRETORIO + pathTemp + "\" -rf\n"
+            + "mkdir \"" + MainSingleton.DIRETORIO + pathTemp + "\"\n"
+            + "\n"
             + "if [ ! -e \"$pidArquivo\" ] ; then\n"
             + "	echo \"criando arquivo $pidArquivo\"\n"
             + "	touch \"$pidArquivo\"\n"
@@ -386,10 +389,11 @@ public class ScriptBash {
             + "		sleep " + timeToReloadFile + ";\n"
             + "	done\n"
             + "else\n"
-            + "	echo \"Tentando instalar o programa cpulimit E libcgroup-tools em FEDORA!, após terminar tente novamente.\"\n"
+            + "	echo \"Tentando instalar o programa cpulimit E psmisc E libcgroup-tools em FEDORA25!, após terminar tente novamente.\"\n"
             + "	read -t 5\n"
-            + "	sudo dnf install cpulimit"
+            + "	sudo dnf install cpulimit\n"
             + "	sudo dnf install libcgroup-tools\n"
+            + "	sudo dnf install psmisc\n"
             + "fi\n"
             + "exit";
 

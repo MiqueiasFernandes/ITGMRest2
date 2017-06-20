@@ -261,7 +261,7 @@ and open the template in the editor.
 
                 <textarea class="form-control" rows="3" id="alert"></textarea>
 
-
+                <div id="alerts" style="width: 100%;"></div>
             </div>
         </div>
     </body>
@@ -282,6 +282,7 @@ and open the template in the editor.
         var handlers = [], closes = [];
         var token;
         var modalVisivel = false;
+        var alerts = document.getElementById("alerts");
 
 
         $('#myModal').on('hide.bs.modal', function (e) {
@@ -292,6 +293,7 @@ and open the template in the editor.
         })
 
         function post() {
+            limpar();
             params = "&parametros=" + document.getElementById("inp").value.split(",").join("&parametros=");
             memoria = "&memoria=" + (document.getElementById("memoria").value);
             cpu = "&cpu=" + (document.getElementById("cpu").value);
@@ -357,8 +359,7 @@ and open the template in the editor.
             div.appendChild(strong);
             div.appendChild(txt);
             div.appendChild(bt);
-            document.getElementById("conteiner")
-                    .appendChild(div);
+            alerts.insertBefore(div, alerts.firstChild);
             return div;
         }
 
@@ -584,9 +585,16 @@ and open the template in the editor.
             var newCell = tableRef.insertRow(tableRef.rows.length - 2).insertCell(0);
             newCell.className = classe;
             newCell.innerHTML = txt;
-            if (lineCount++ > 20) {
+            if (++lineCount > 10) {
                 tableRef.removeChild(tableRef.childNodes[2]);
             }
+        }
+
+        function limpar() {
+            while (tableRef.rows.length > 3) {
+                tableRef.removeChild(tableRef.childNodes[tableRef.rows.length - 2]);
+            }
+            lineCount = 0;
         }
 
         function log(text) {

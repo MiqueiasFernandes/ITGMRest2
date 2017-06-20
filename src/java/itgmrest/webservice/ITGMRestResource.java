@@ -352,6 +352,16 @@ public class ITGMRestResource {
 
         return false;
     }
+    
+    @POST
+    @Path("diretorio")
+    @Consumes(MediaType.TEXT_PLAIN)
+    public String postdiretorio(String diretorio) {
+        System.out.println("@PUT/SET DIRETORIO : a alterar diretorio de "
+                + MainSingleton.DIRETORIO + " para " + diretorio);
+        return MainSingleton.change_dir(diretorio) ? ("alteração efetuada com sucesso para " + diretorio )
+                : ("erro - diretorio " + MainSingleton.DIRETORIO);
+    }
 
     @PUT
     @Path("suspend")

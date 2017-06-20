@@ -125,7 +125,7 @@ and open the template in the editor.
                     <form class="form-horizontal">
                         <div class="form-group">
                             <label for="url">URL</label>
-                            <input type="text" class="form-control" id="url" value="http://itgm.mikeias.net:8080/ITGMRest2/webresources/jriaccess/miqueias/p1/c1/diretorio">
+                            <input type="text" class="form-control" id="url" value="miqueias/p1/c1/diretorio/">
                         </div>
                         <div class="form-group">
                             <label for="inp">Parametros</label>
@@ -144,6 +144,7 @@ and open the template in the editor.
                         <button  class="form-group btn btn-primary" type="button" onclick="send('stop')">STOP</button>
                         <button  class="form-group btn btn-primary" type="button" onclick="update()">UPDATE</button>
                         <button  class="form-group btn btn-primary" type="button" onclick="endProcesso()">EXIT</button>
+                        <button  class="form-group btn btn-primary" type="button" onclick="resultado()">RESULTADO</button>
                     </form>
                 </main>
 
@@ -165,7 +166,7 @@ and open the template in the editor.
             disco = "&disco=" + (document.getElementById("disco").value);
             salvar = "&salvar=true";
             $.ajax({
-                url: "http://localhost:8090/ITGMRest2/webresources/jriaccess/update" + "?" + memoria + cpu + disco + salvar,
+                url: "http://" + window.location.host + "/ITGMRest2/webresources/jriaccess/update" + "?" + memoria + cpu + disco + salvar,
                 type: 'post',
                 contentType: "text/plain",
                 data: token,
@@ -191,7 +192,7 @@ and open the template in the editor.
             disco = "&disco=" + (document.getElementById("disco").value);
             salvar = "&salvar=true";
             $.ajax({
-                url: document.getElementById("url").value + "?" + memoria + cpu + disco + salvar + params,
+                url: "http://" + window.location.host + "/ITGMRest2/webresources/jriaccess/" + document.getElementById("url").value + "?" + memoria + cpu + disco + salvar + params,
                 type: 'post',
                 contentType: "text/plain",
                 data: encodeURIComponent(document.getElementById("script").value),
@@ -216,7 +217,7 @@ and open the template in the editor.
 
         function getStatus() {
             $.ajax({
-                url: "http://localhost:8090/ITGMRest2/webresources/jriaccess/status/" + token,
+                url: "http://" + window.location.host + "/ITGMRest2/webresources/jriaccess/status/" + token,
                 type: 'get',
                 contentType: "text/plain",
                 success: function (data) {
@@ -245,7 +246,7 @@ and open the template in the editor.
 
         function send(opcao) {
             $.ajax({
-                url: "http://localhost:8090/ITGMRest2/webresources/jriaccess/" + opcao,
+                url: "http://" + window.location.host + "/ITGMRest2/webresources/jriaccess/" + opcao,
                 type: "put",
                 contentType: "text/plain",
                 data: token,
@@ -261,7 +262,7 @@ and open the template in the editor.
 
         function endProcesso() {
             $.ajax({
-                url: "http://localhost:8090/ITGMRest2/webresources/jriaccess/process/" + token,
+                url: "http://" + window.location.host + "/ITGMRest2/webresources/jriaccess/process/" + token,
                 type: "delete",
                 contentType: "text/plain",
                 success: function (data) {
@@ -308,21 +309,32 @@ and open the template in the editor.
             div.appendChild(txt);
             div.appendChild(bt);
             var alerts = document.getElementById("alerts");
-//            tmp = alerts.firstChild;
-
             alerts.insertBefore(div, alerts.firstChild);
-            //ultimo = div;
-//            else
-//                ultimo.be
-//            alerts.appendChild(alerts.removeChild(alerts.firstChild));
             return div;
         }
 
 
 
+       function resultado(){
+            $.ajax({
+                  url: "http://" + window.location.host + "/ITGMRest2/webresources/jriaccess/content/" + document.getElementById("url").value + token + ".Rout",
+                type: 'get',
+                contentType: "text/plain",
+                success: function (data) {
+                    if (!data || data === null) {
+                        addAlert("warning", "READ: ", "impossivel ler, url: " + urli, false);
+                        return;
+                    }
 
-
-
+                    addAlert("success", "CONTEUDO: ",  data, true);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    addAlert("danger", "READ: ", " falhou, " + jqXHR + " "
+                            + textStatus + " " + errorThrown + " url: " + urli, false);
+                }
+            });
+            return; 
+        }
 
 
         function log(text) {
