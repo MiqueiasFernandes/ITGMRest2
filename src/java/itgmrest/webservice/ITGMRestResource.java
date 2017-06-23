@@ -586,7 +586,7 @@ public class ITGMRestResource {
             fileInputStream.mark(0);
             byte[] bs = new byte[100];
             fileInputStream.read(bs);
-            getMainSingleton().debug("arquivo: " + file + " tam: " + fileInputStream.available() + " content: " + new String(bs) + "...", getClass(), 288);
+            getMainSingleton().debug("arquivo: " + file + " tam: " + getTamanho(fileInputStream.available()) + " content: " + new String(bs) + "...", getClass(), 288);
             fileInputStream.reset();
             File f = new File(file);
             if (file.endsWith("/")) {
@@ -623,6 +623,15 @@ public class ITGMRestResource {
             getMainSingleton().error("impossivel efetuar " + metodo + ": " + ex, this.getClass(), 200);
         }
         return null;
+    }
+    
+    static String getTamanho(int tam) {
+        if (tam < 1024)
+            return tam + "bytes";
+        else if (tam < (1024 * 1024))
+            return (tam / 1024) + "KBytes";
+        return (tam / (1024 * 1024)) + "MBytes";
+        
     }
 
 }
