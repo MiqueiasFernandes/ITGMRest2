@@ -13,14 +13,26 @@ import itgmrest.processos.Contexto;
 import itgmrest.processos.LiveProcesso;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
@@ -42,6 +54,8 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 @Path("jriaccess")
 public class ITGMRestResource {
+
+    private static String portas;
 
     @Context
     private UriInfo context;
@@ -194,22 +208,8 @@ public class ITGMRestResource {
     public String getContentOfFile(@PathParam("file") String file) {
         getMainSingleton().info("@GET/CONTENT : a obter conteudo do arquivo " + file);
         try {
-            MultivaluedMap<String, String> pathParameters = context.getPathParameters();
-            String local = MainSingleton.DIRETORIO
-                    + pathParameters.getFirst("usuario") + File.separator
-                    + (!"*".equals(pathParameters.getFirst("projeto"))
-                    ? pathParameters.getFirst("projeto") + File.separator : "")
-                    + (!"*".equals(pathParameters.getFirst("cenario"))
-                    ? pathParameters.getFirst("cenario") + File.separator : "")
-                    + (!"*".equals(pathParameters.getFirst("diretorio"))
-                    ? pathParameters.getFirst("diretorio") + File.separator : "");
-            if (context.getQueryParameters().getFirst("subdiretorio") != null
-                    && !context.getQueryParameters().getFirst("subdiretorio").isEmpty()) {
-                local += context.getQueryParameters().getFirst("subdiretorio");
-            }
-
+            String local = MainSingleton.DIRETORIO + getFile(context);
             boolean cript = "true".equals(context.getQueryParameters().getFirst("cript"));
-
             local += file;
             Scanner scanner = new Scanner(new File(local), "UTF-8");
             StringBuilder sb = new StringBuilder();
@@ -237,21 +237,7 @@ public class ITGMRestResource {
     public String publicFile(@PathParam("file") String file) {
         getMainSingleton().info("@GET/PUBLIC : a publicar arquivo " + file);
         try {
-            MultivaluedMap<String, String> pathParameters = context.getPathParameters();
-            String local = MainSingleton.DIRETORIO
-                    + pathParameters.getFirst("usuario") + File.separator
-                    + (!"*".equals(pathParameters.getFirst("projeto"))
-                    ? pathParameters.getFirst("projeto") + File.separator : "")
-                    + (!"*".equals(pathParameters.getFirst("cenario"))
-                    ? pathParameters.getFirst("cenario") + File.separator : "")
-                    + (!"*".equals(pathParameters.getFirst("diretorio"))
-                    ? pathParameters.getFirst("diretorio") + File.separator : "");
-            if (context.getQueryParameters().getFirst("subdiretorio") != null
-                    && !context.getQueryParameters().getFirst("subdiretorio").isEmpty()) {
-                local += context.getQueryParameters().getFirst("subdiretorio");
-            }
-
-            local += file;
+            String local = MainSingleton.DIRETORIO + getFile(context);
             File f = new File(local);
             String token = getMainSingleton().nextTokenFile();
             String nome;
@@ -278,6 +264,36 @@ public class ITGMRestResource {
         }
     }
 
+    @GET
+    @Path("stream/{usuario}/{projeto}/{cenario}/{diretorio}/{file}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getStream(@PathParam("file") String file) {
+        getMainSingleton().info("@GET/PUBLIC : a obter porta de stream para arquivo " + file);
+
+        File f = new File(getFile(context));
+        if (portas == null || portas.isEmpty()) {
+            portas = "";
+        }
+
+        String[] ps = portas.split(",");
+        for (int i = 8880; i < 8890; i++) {
+            boolean pode = true;
+            if (!portas.isEmpty()) {
+                for (String p : ps) {
+                    if (Integer.parseInt(p) == i) {
+                        pode = false;
+                    }
+                }
+            }
+            if (pode) {
+                portas = i + "," + portas;
+                startServer(i, f);
+                return "{\"porta\":" + i + "}";
+            }
+        }
+        return "-1";
+    }
+
     public String list(File file) {
 
         String files = file.getAbsolutePath().replace(MainSingleton.DIRETORIO, "");
@@ -290,6 +306,47 @@ public class ITGMRestResource {
 
         }
         return files;
+    }
+
+    public void startServer(int porta, File f) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ServerSocket listener = null;
+                try {
+                    listener = new ServerSocket(porta);
+                    listener.setSoTimeout(MainSingleton.SO_TIMEOUT);
+                    System.out.println("Server escutando em " + porta);
+                    Socket socket = listener.accept();
+                    System.out.println("conexao aceita " + socket);
+                    try {
+                        PrintWriter out
+                                = new PrintWriter(socket.getOutputStream(), true);
+                        out.println(new Date().toString());
+
+                        System.out.println("-----------start------------------");
+                        Files.copy(socket.getInputStream(), f.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        System.out.println("-------------end------------------");
+                        System.out.println("o arquivo " + f + " para a porta " + porta + " foi salvo com sucesso.");
+                    } finally {
+                        socket.close();
+                        listener.close();
+                    }
+                } catch (SocketTimeoutException ex) {
+                    System.err.println("ERRO AO AGUARDAR EM PORTA " + porta + " POR 60 SG.");
+                    try {
+                        listener.close();
+                    } catch (IOException ex1) {
+                        System.err.println("ERRO IMPOSSIVEL INTERROMPER PORTA " + porta);
+                    }
+                } catch (IOException ex) {
+                    System.err.println("ERROR: " + ex + " \nA CONEXÃO " + porta + " SERÁ ABORATADA!");
+                } finally {
+                    portas = portas.replaceAll("" + porta + "", "");
+                    portas = portas.replaceAll(",,", "");
+                }
+            }
+        }).start();
     }
 
     /**
@@ -352,14 +409,14 @@ public class ITGMRestResource {
 
         return false;
     }
-    
+
     @POST
     @Path("diretorio")
     @Consumes(MediaType.TEXT_PLAIN)
     public String postdiretorio(String diretorio) {
         System.out.println("@PUT/SET DIRETORIO : a alterar diretorio de "
                 + MainSingleton.DIRETORIO + " para " + diretorio);
-        return MainSingleton.change_dir(diretorio) ? ("alteração efetuada com sucesso para " + diretorio )
+        return MainSingleton.change_dir(diretorio) ? ("alteração efetuada com sucesso para " + diretorio)
                 : ("erro - diretorio " + MainSingleton.DIRETORIO);
     }
 
@@ -477,25 +534,7 @@ public class ITGMRestResource {
             @PathParam("file") String file) {
         getMainSingleton().info("@DELETE/FILE " + file);
         try {
-            MultivaluedMap<String, String> pathParameters = context.getPathParameters();
-            String arquivo = MainSingleton.DIRETORIO
-                    + pathParameters.getFirst("usuario") + File.separator
-                    + (!"*".equals(pathParameters.getFirst("projeto"))
-                    ? pathParameters.getFirst("projeto") + File.separator : "")
-                    + (!"*".equals(pathParameters.getFirst("cenario"))
-                    ? pathParameters.getFirst("cenario") + File.separator : "")
-                    + (!"*".equals(pathParameters.getFirst("diretorio"))
-                    ? pathParameters.getFirst("diretorio") + File.separator : "");
-
-            if (context.getQueryParameters().getFirst("subdiretorio") != null
-                    && !context.getQueryParameters().getFirst("subdiretorio").isEmpty()) {
-                arquivo += context.getQueryParameters().getFirst("subdiretorio");
-            }
-
-            arquivo += file;
-            if (context.getPath().endsWith("/")) {
-                arquivo += "/";
-            }
+            String arquivo = getFile(context);
             ScriptBash.updatePID("0", "0", "0", "sudo rm " + arquivo + " -r -f");
         } catch (Exception ex) {
             getMainSingleton().error("impossivel deletar arquivo " + file + ": " + ex, this.getClass(), 324);
@@ -509,25 +548,8 @@ public class ITGMRestResource {
     public boolean postFileContent(String fileContent) {
         getMainSingleton().info("@POST/FILE recebendo arquivo");
         try {
-            MultivaluedMap<String, String> pathParameters = context.getPathParameters();
-            String file = MainSingleton.DIRETORIO
-                    + pathParameters.getFirst("usuario") + File.separator
-                    + (!"*".equals(pathParameters.getFirst("projeto"))
-                    ? pathParameters.getFirst("projeto") + File.separator : "")
-                    + (!"*".equals(pathParameters.getFirst("cenario"))
-                    ? pathParameters.getFirst("cenario") + File.separator : "")
-                    + (!"*".equals(pathParameters.getFirst("diretorio"))
-                    ? pathParameters.getFirst("diretorio") + File.separator : "");
-
-            if (context.getQueryParameters().getFirst("subdiretorio") != null
-                    && !context.getQueryParameters().getFirst("subdiretorio").isEmpty()) {
-                file += context.getQueryParameters().getFirst("subdiretorio");
-            }
-
-            file += pathParameters.getFirst("file");
-            if (context.getPath().endsWith("/")) {
-                file += "/";
-            } else {
+            String file = getFile(context);
+            if (!file.endsWith("/")) {
                 new File(file.substring(0, file.lastIndexOf("/") + 1)).mkdirs();
             }
 
@@ -560,25 +582,9 @@ public class ITGMRestResource {
     public boolean sendBinary(InputStream fileInputStream) {
         getMainSingleton().info("@POST/FILE/BINARY recebendo arquivo");
         try {
-            MultivaluedMap<String, String> pathParameters = context.getPathParameters();
-            String file = MainSingleton.DIRETORIO
-                    + pathParameters.getFirst("usuario") + File.separator
-                    + (!"*".equals(pathParameters.getFirst("projeto"))
-                    ? pathParameters.getFirst("projeto") + File.separator : "")
-                    + (!"*".equals(pathParameters.getFirst("cenario"))
-                    ? pathParameters.getFirst("cenario") + File.separator : "")
-                    + (!"*".equals(pathParameters.getFirst("diretorio"))
-                    ? pathParameters.getFirst("diretorio") + File.separator : "");
+            String file = getFile(context);
 
-            if (context.getQueryParameters().getFirst("subdiretorio") != null
-                    && !context.getQueryParameters().getFirst("subdiretorio").isEmpty()) {
-                file += context.getQueryParameters().getFirst("subdiretorio");
-            }
-
-            file += pathParameters.getFirst("file");
-            if (context.getPath().endsWith("/")) {
-                file += "/";
-            } else {
+            if (!file.endsWith("/")) {
                 new File(file.substring(0, file.lastIndexOf("/") + 1)).mkdirs();
             }
 
@@ -624,14 +630,33 @@ public class ITGMRestResource {
         }
         return null;
     }
-    
+
+    static String getFile(UriInfo context) {
+        MultivaluedMap<String, String> pathParameters = context.getPathParameters();
+        String file = MainSingleton.DIRETORIO
+                + pathParameters.getFirst("usuario") + File.separator
+                + (!"*".equals(pathParameters.getFirst("projeto"))
+                ? pathParameters.getFirst("projeto") + File.separator : "")
+                + (!"*".equals(pathParameters.getFirst("cenario"))
+                ? pathParameters.getFirst("cenario") + File.separator : "")
+                + (!"*".equals(pathParameters.getFirst("diretorio"))
+                ? pathParameters.getFirst("diretorio") + File.separator : "");
+
+        if (context.getQueryParameters().getFirst("subdiretorio") != null
+                && !context.getQueryParameters().getFirst("subdiretorio").isEmpty()) {
+            file += context.getQueryParameters().getFirst("subdiretorio");
+        }
+        file += pathParameters.getFirst("file");
+        return file + (context.getPath().endsWith("/") ? "/" : "");
+    }
+
     static String getTamanho(int tam) {
-        if (tam < 1024)
+        if (tam < 1024) {
             return tam + "bytes";
-        else if (tam < (1024 * 1024))
+        } else if (tam < (1024 * 1024)) {
             return (tam / 1024) + "KBytes";
+        }
         return (tam / (1024 * 1024)) + "MBytes";
-        
     }
 
 }

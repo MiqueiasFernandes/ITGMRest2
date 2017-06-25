@@ -60,7 +60,7 @@ public class MainSingleton {
     private static final HashMap<String, AbstractProcesso> PROCESSOS = new HashMap<>();
     public static final Locale LOCALE = new Locale("pt", "BR");
     public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(MainSingleton.LOG_TIME_FORMAT, LOCALE);
-
+    public static final int SO_TIMEOUT = 60000;
     private static boolean MAIN_SINGLETON_INICIALIZADO = false;
 
     public static boolean change_dir(String diretorio) {
