@@ -208,7 +208,7 @@ public class ITGMRestResource {
     public String getContentOfFile(@PathParam("file") String file) {
         getMainSingleton().info("@GET/CONTENT : a obter conteudo do arquivo " + file);
         try {
-            String local = MainSingleton.DIRETORIO + getFile(context);
+            String local = getFile(context, false);
             boolean cript = "true".equals(context.getQueryParameters().getFirst("cript"));
             local += file;
             Scanner scanner = new Scanner(new File(local), "UTF-8");
@@ -237,7 +237,7 @@ public class ITGMRestResource {
     public String publicFile(@PathParam("file") String file) {
         getMainSingleton().info("@GET/PUBLIC : a publicar arquivo " + file);
         try {
-            String local = MainSingleton.DIRETORIO + getFile(context);
+            String local = getFile(context, false);
             File f = new File(local);
             String token = getMainSingleton().nextTokenFile();
             String nome;
@@ -270,7 +270,7 @@ public class ITGMRestResource {
     public String getStream(@PathParam("file") String file) {
         getMainSingleton().info("@GET/PUBLIC : a obter porta de stream para arquivo " + file);
 
-        File f = new File(getFile(context));
+        File f = new File(getFile(context, true));
         if (portas == null || portas.isEmpty()) {
             portas = "";
         }
@@ -322,7 +322,7 @@ public class ITGMRestResource {
                     try {
                         PrintWriter out
                                 = new PrintWriter(socket.getOutputStream(), true);
-                        out.println(new Date().toString());
+                        out.println(">|ITGMRest: Olá! receberei o arquivo hoje: " + new Date().toString() + "|<");
 
                         System.out.println("-----------start------------------");
                         Files.copy(socket.getInputStream(), f.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -534,7 +534,7 @@ public class ITGMRestResource {
             @PathParam("file") String file) {
         getMainSingleton().info("@DELETE/FILE " + file);
         try {
-            String arquivo = getFile(context);
+            String arquivo = getFile(context, false);
             ScriptBash.updatePID("0", "0", "0", "sudo rm " + arquivo + " -r -f");
         } catch (Exception ex) {
             getMainSingleton().error("impossivel deletar arquivo " + file + ": " + ex, this.getClass(), 324);
@@ -548,10 +548,7 @@ public class ITGMRestResource {
     public boolean postFileContent(String fileContent) {
         getMainSingleton().info("@POST/FILE recebendo arquivo");
         try {
-            String file = getFile(context);
-            if (!file.endsWith("/")) {
-                new File(file.substring(0, file.lastIndexOf("/") + 1)).mkdirs();
-            }
+            String file = getFile(context, true);
 
             String conteudo = file.endsWith("/") ? null : URLDecoder.decode(fileContent, "UTF-8");
             getMainSingleton().debug("arquivo: " + file + " content: "
@@ -582,11 +579,7 @@ public class ITGMRestResource {
     public boolean sendBinary(InputStream fileInputStream) {
         getMainSingleton().info("@POST/FILE/BINARY recebendo arquivo");
         try {
-            String file = getFile(context);
-
-            if (!file.endsWith("/")) {
-                new File(file.substring(0, file.lastIndexOf("/") + 1)).mkdirs();
-            }
+            String file = getFile(context, true);
 
             fileInputStream = new BufferedInputStream(fileInputStream);
             fileInputStream.mark(0);
@@ -631,7 +624,7 @@ public class ITGMRestResource {
         return null;
     }
 
-    static String getFile(UriInfo context) {
+    static String getFile(UriInfo context, boolean mkdirs) {
         MultivaluedMap<String, String> pathParameters = context.getPathParameters();
         String file = MainSingleton.DIRETORIO
                 + pathParameters.getFirst("usuario") + File.separator
@@ -647,7 +640,11 @@ public class ITGMRestResource {
             file += context.getQueryParameters().getFirst("subdiretorio");
         }
         file += pathParameters.getFirst("file");
-        return file + (context.getPath().endsWith("/") ? "/" : "");
+        file = file + (context.getPath().endsWith("/") ? "/" : "");
+        if (mkdirs && !file.endsWith("/")) {
+            new File(file.substring(0, file.lastIndexOf("/") + 1)).mkdirs();
+        }
+        return file;
     }
 
     static String getTamanho(int tam) {
