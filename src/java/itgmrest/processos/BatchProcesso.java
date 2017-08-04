@@ -89,22 +89,27 @@ public class BatchProcesso extends AbstractProcesso {
         }
 
         new Thread(() -> {
-            int cont = 0;
-
-            while (getProcesso().isAlive()) {
+            int cont = 0, time = 0;
+            boolean continuar = true;
+            while (getProcesso().isAlive() && continuar) {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ex) {
                     error("impossivel aguardar por status: " + ex, this, 83);
                 }
+                time++;
                 if (!isPROCESSO_SUSPENSO() && cont++ < MainSingleton.TIMEOUT_STATUS) {
                     cont = 0;
                     try {
-                        debug("requerendo status de processo...", this, 54);
+                        debug("requerendo status de processo...", this, 103);
                         writeToStreamProcess("status");
                         Thread.sleep(500);
                         status = new Status(reader.readLine(), getContexto(), isPROCESSO_SUSPENSO());
-                        debug("status de processo: " + status, this, 57);
+                        debug("status de processo: " + status, this, 107);
+                        if (!status.isIsAlive() && time > MainSingleton.TIMEOUT_PID) {
+                            encerrarSessao("processo morto " + status);
+                            continuar = false;
+                        }
                         verificarUsoDeRecursos(status);
                     } catch (Exception ex) {
                         error("impossivel enviar requisição de status a processo. ex: " + ex, this, 114);

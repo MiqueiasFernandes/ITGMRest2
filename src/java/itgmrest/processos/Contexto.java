@@ -38,6 +38,47 @@ public class Contexto {
     private final String conteudoDecoded;
     private final String token;
 
+    public Contexto(String usuario, 
+            String projeto, 
+            String cenario, 
+            String diretorio, 
+            String[] parametros, 
+            boolean isLive, 
+            boolean salvar, 
+            String conteudo, 
+            String token) {
+        this.usuario = usuario;
+        this.projeto = projeto;
+        this.cenario = cenario;
+        this.diretorio = diretorio;
+        this.parametros = parametros;
+        this.memoriaLimite = "500";
+        this.cpuLimite = "500";
+        this.discoLimite = "500";
+        this.isLive = isLive;
+        this.isBatch = !isLive;
+        this.salvar = salvar;
+        this.valido = true;
+        this.conteudo = conteudo;
+        this.conteudoDecoded = conteudo;
+        this.token = token;
+        diretorioPath = MainSingleton.DIRETORIO
+                + usuario
+                + File.separator + projeto
+                + File.separator + cenario
+                + File.separator + diretorio + File.separator;
+        diretorioFile = new File(diretorioPath);
+        if (!Files.exists(diretorioFile.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+            diretorioFile.mkdirs();
+        }
+       this.pathParameters = null;
+       this.queryParameters = null;
+    }
+
+    
+    
+    
+    
     public Contexto(MultivaluedMap<String, String> pathParameters,
             MultivaluedMap<String, String> queryParameters,
             String conteudo) throws Exception {

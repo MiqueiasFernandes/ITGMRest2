@@ -13,14 +13,10 @@ import itgmrest.processos.Contexto;
 import itgmrest.processos.LiveProcesso;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -31,8 +27,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
@@ -46,6 +40,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 /**
  * REST Web Service
@@ -210,7 +205,6 @@ public class ITGMRestResource {
         try {
             String local = getFile(context, false);
             boolean cript = "true".equals(context.getQueryParameters().getFirst("cript"));
-            local += file;
             Scanner scanner = new Scanner(new File(local), "UTF-8");
             StringBuilder sb = new StringBuilder();
             getMainSingleton().debug("@GET/CONTENT : arquivo: " + local + " hasLine: " + scanner.hasNextLine(), this.getClass(), 212);
@@ -261,6 +255,56 @@ public class ITGMRestResource {
             return nome + metadata;
         } catch (Exception ex) {
             return "error:" + ex;
+        }
+    }
+
+    @GET
+    @Path("rbokeh/{usuario}/{projeto}/{cenario}/{diretorio}/{id}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response publicRbokeh(
+            @PathParam("usuario") String usuario,
+            @PathParam("projeto") String projeto,
+            @PathParam("cenario") String cenario,
+            @PathParam("diretorio") String diretorio,
+            @PathParam("id") String id
+    ) {
+        getMainSingleton().info("@GET/PUBLIC : a publicar rbokeh");
+        try {
+
+            String base = context.getQueryParameters().getFirst("base");
+            String parametros = context.getQueryParameters().getFirst("parametros");
+            String token = MainSingleton.getInstance().nextTokenFile();
+            parametros = parametros.replace("titulo = \"",  "");
+            parametros = parametros.substring(parametros.indexOf(":")+1);
+            parametros = "titulo = \"Visualizando por " + id + ": "+ parametros;
+            String script = "data = read.csv(\"" + base + "\")\n"
+                    + "require(ITGM)\n"
+                    + "require(rbokeh)\n"
+                    + "plotRB( observado = data$observado, estimado = data$estimado, sobnome = NULL, data = data, "
+                    + "diretorio = \"" + usuario +"/" + projeto+"/" +cenario+"/" +diretorio+"/\"," +
+                    parametros + ", "
+                    + "id= data$" + id
+                    + ",datadiretorio=\"" + base
+                    + "\", save=\"" + MainSingleton.WWW + "\", "
+                    + "nome=\"" + token + "\")\n";
+            System.out.println("scr " + script);
+
+            Contexto contexto = new Contexto(usuario, projeto, cenario, diretorio, new String[]{"BATCH", "log.txt", "DEBUG"}, false, true, script, token);
+            AbstractProcesso processo = new BatchProcesso(contexto);
+            if (processo.processar()) {
+                getMainSingleton().addProcesso(processo);
+            } else {
+                throw new Exception("Impossível startar processo. consulte os logs");
+            }
+
+            return Response.ok(token)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", "POST, GET, PUT, UPDATE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With").build();
+        } catch (Exception ex) {
+            return Response.ok("error:" + ex).header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", "POST, GET, PUT, UPDATE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With").build();
         }
     }
 

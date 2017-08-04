@@ -172,7 +172,7 @@ public class MainSingleton {
     }
 
     public AbstractProcesso getProcesso(String token) {
-        debug("recuperando processo com token " + token, getClass(), 87);
+        debug("recuperando processo com token " + token, getClass(), 175);
         return PROCESSOS.get(token);
     }
 
